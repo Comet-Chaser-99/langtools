@@ -19,6 +19,8 @@ The recommended approach is a **clean reimplementation with compatibility at doc
 
 For the primary implementation, **modern .NET with C# and Avalonia is the lowest-risk choice**. TypeScript is viable, especially with Electron, but advanced input methods, bidirectional text, desktop integration, large-project performance, and native linguistic dependencies increase the risk. The final stack choice should be made after a short, evidence-based prototype comparing C#/Avalonia and TypeScript/Electron on the hardest text-editing scenarios.
 
+For morphological parsing, the strongest clean-reimplementation candidate is an **FST-based analyzer/generator**, initially using pyfoma as the reference backend. Most HermitCrab morphology and phonology maps naturally to finite-state lexicons, morphotactics, flag diacritics, and composed rewrite rules. Strict compatibility will still require differential testing and possibly a small semantic constraint layer for constructs that are non-regular or impractical to compile.
+
 Directional delivery expectations:
 
 - A credible lexicography MVP: **12–18 months with 5–7 experienced contributors**.
@@ -275,6 +277,116 @@ Offer two levels:
 
 For user automation, a Python SDK is likely more valuable to the current community than JavaScript-only scripting. The protocol should be language-neutral so Python and TypeScript clients can coexist.
 
+### 4.7 HermitCrab replacement with finite-state transducers
+
+HermitCrab is a rule-based morphological and phonological analyzer/generator. FieldWorks currently loads lexical entries, allomorphs, grammatical features, inflectional templates, compounds, clitics, natural classes, and phonological rules from LCModel into a HermitCrab `Language`. Parsing then works broadly by reversing possible surface rules, locating candidate roots, synthesizing each candidate forward, and retaining analyses that reproduce the input and satisfy the feature and co-occurrence constraints.
+
+Most of this problem is a natural fit for finite-state transducers. The proposed replacement is:
+
+```text
+FieldWorks-compatible domain model
+        |
+Morphology/phonology intermediate representation
+        |
+lexd lexicon and morphotactics
+        @ morphological alternation transducers
+        @ ordered phonological rewrite transducers
+        @ marker cleanup
+        |
+Compiled analyzer/generator
+        |
+Optional semantic constraint and diagnostic layer
+```
+
+The intermediate representation must be backend-neutral. It should describe morphemes, allomorphs, object IDs, lexical categories, features, template slots, environments, natural classes, rule order, and provenance without embedding pyfoma syntax. A pyfoma compiler can then be the first backend while preserving the ability to target another FST runtime later.
+
+#### Direct mappings
+
+| HermitCrab / FLEx concept | Proposed FST representation |
+|---|---|
+| Roots and allomorphs | Lexicon transducer entries carrying stable object IDs |
+| Prefixes, suffixes, circumfixes | `lexd` patterns and lexical mappings |
+| Infixation, truncation, simulfixation | Explicit transducers or rewrite rules |
+| Inflectional templates and slots | Morphotactic paths with optional/required positions |
+| Derivation and category changes | Tagged lexical relations with input/output feature constraints |
+| Compounding and clitics | Repeating morphotactic patterns plus category flags |
+| Phonological rewrite rules | Composed `$^rewrite(...)` transducers |
+| Metathesis | Explicit reorder transducers or compiled rewrite rules |
+| Natural classes | Named symbol-set automata derived from phonological features |
+| Allomorph environments | Context restrictions and filters |
+| POS, inflection class, stem name | Lexical tags and flag diacritics |
+| Morpheme/allomorph co-occurrence | Flags, intersection filters, or final semantic checks |
+| Analysis | Inverse/upward application of the compiled relation |
+| Generation | Forward/downward application of the same relation |
+| Preferred/default analyses | Tropical weights, with deterministic tie policy |
+
+Lexical analyses should retain stable project identities rather than returning only gloss strings. A conceptual lexical side might be:
+
+```text
+lom<ENTRY:guid><POS:V><TENSE:PST>
+```
+
+It could map first to an intermediate morpheme sequence such as `lom+ta`, then pass through phonology to produce `lonta`. Inverting the same compiled relation maps `lonta` back to one or more identity-bearing analyses.
+
+#### Why FSTs are attractive
+
+- One declarative relation supports both analysis and generation.
+- Morphotactics and morphophonology remain separately inspectable and testable.
+- Composition, inversion, determinization, minimization, and weighting are standard operations rather than application-specific search code.
+- Networks and intermediate stages can be visualized for grammar development.
+- Lookup can be isolated behind a small cross-platform parser-service API.
+- A grammar can be tested globally for accepted and overgenerated languages, not only through individual examples.
+- The new implementation need not reproduce HermitCrab's internal classes or analysis-by-synthesis control flow to preserve user-visible behavior.
+
+#### Limits and likely hybrid cases
+
+Feature structures are finite-state when the relevant feature and value inventories are finite, as most project-defined POS, inflection-class, and inflectional features are. They should not be expanded naïvely into a full Cartesian product. Local constraints belong in ordinary states; long-distance agreement and selection belong in flag diacritics; unusually large or nested constraints may be cheaper in a post-lookup validator.
+
+Fully productive copying of an arbitrarily long substring is not generally a rational relation. Bounded copying, lexically bound reduplication, and finite-lexicon reduplication can be compiled, including through multi-column `lexd` patterns. Truly unrestricted reduplication may require an equality mechanism, enriched representation, a bounded policy, or a small non-FST processor.
+
+Productive compounding is finite-state when it is a regular sequence such as `Stem (Linker? Stem)*` and its category state is finite. An unbounded derivation tree or recursively nested feature structure is not directly represented by an ordinary FST. The output can still carry flat compound boundaries and object identities while a higher layer constructs the analysis tree.
+
+Unknown-root guessing can be represented with a constrained identity path over legal segments, but it should remain a separately weighted fallback so it does not swamp known lexical analyses.
+
+HermitCrab's trace facility explains both successful rule histories and failures. Successful FST paths can carry provenance markers, but explaining why all paths failed requires stage-aware diagnostics. Keep named intermediate networks and record candidate counts after lexicon, morphotactics, each rule group, and final filters. A diagnostic mode may deliberately avoid full composition so it can identify the first stage that eliminates a candidate.
+
+#### Compilation and update strategy
+
+Do not compile one opaque monolithic network after every project edit. Cache independently versioned components:
+
+```text
+lexicon @ morphotactics @ allomorphy @ phonology @ cleanup
+```
+
+A new lexical entry should normally rebuild only the lexicon component and affected composition cache. A phonological rule edit should not reconstruct lexical extraction. Compilation should run in a worker process, support cancellation, and keep the last known-good grammar active until the new grammar passes validation.
+
+Python packaging and pyfoma compilation performance must be measured rather than assumed. If the desktop application is C#, TypeScript, or another language, run the FST backend behind a versioned local service protocol. Serialize compiled networks where supported and keep warm worker processes to avoid interpreter startup on each lookup.
+
+#### Differential validation against HermitCrab
+
+Compatibility should be measured over normalized analysis sets, not a few successful parses. For every wordform in representative projects:
+
+1. Capture HermitCrab analyses with stable entry, allomorph, MSA, inflection-type, compound, and rule identities.
+2. Run the same form through the FST backend.
+3. Normalize ordering and implementation-only markers.
+4. Report identical, missing, and additional analyses.
+5. Repeat for generation from approved analyses.
+6. Preserve ambiguous analysis sets rather than comparing only the first result.
+
+Track exact-set agreement, analysis precision/recall, compile time, incremental rebuild time, lookup latency, peak memory, state/arc counts, and diagnostic quality. The corpus must include affix templates, allomorphy, phonological rules, metathesis, compounds, clitics, exception features, co-occurrence restrictions, partial analyses, root guessing, and reduplication.
+
+#### Recommended delivery sequence
+
+1. Compile stems, allomorphs, prefixes, suffixes, circumfixes, and basic category constraints.
+2. Add inflectional templates and ordered rewrite phonology.
+3. Add environments, inflection classes, stem names, exception features, and co-occurrence rules using flags.
+4. Add compounds and clitics.
+5. Add metathesis, infixation, truncation, and bounded reduplication.
+6. Introduce the semantic fallback only for constructs shown by tests to be unsuitable for compilation.
+7. Delay default activation until differential tests meet project-specific acceptance thresholds.
+
+The goal is not necessarily a pure-FST implementation. The goal is a small, declarative FST core with any irreducible behavior isolated and documented, rather than re-creating a large specialized search engine.
+
 ## 5. Technology choice
 
 ### 5.1 Recommended: C# on current LTS .NET with Avalonia
@@ -496,12 +608,17 @@ Each phase has a deliverable and an exit gate. Phases may overlap only after the
 
 1. Implement category, feature, phoneme, natural-class, environment, and rule editors.
 2. Implement grammar-sketch generation from an explicit intermediate model.
-3. Define a parser service protocol independent of any specific engine.
-4. Integrate HermitCrab or another approved engine as an out-of-process adapter, subject to licensing and platform validation.
-5. Decide whether XAmple compatibility is essential; isolate it if retained.
-6. Implement Try a Word, trace, status, and parser-result lifecycle based on actual user priorities.
+3. Define a backend-neutral morphology/phonology IR and a parser service protocol independent of any specific engine.
+4. Build a pyfoma backend using `lexd` for morphotactics, flags for finite feature constraints, and composed rewrite transducers for morphophonology.
+5. Preserve stable domain-object identities and rule provenance through analysis and generation.
+6. Build the HermitCrab differential harness and compare complete ambiguous analysis sets across the golden corpus.
+7. Add incremental component compilation, caching, cancellation, last-known-good activation, and diagnostic-stage execution.
+8. Implement a narrow semantic fallback for demonstrated non-finite-state or state-explosive constructs such as unrestricted copying or unusually complex feature constraints.
+9. Retain HermitCrab temporarily as an optional reference/compatibility adapter until FST acceptance thresholds are met.
+10. Decide whether XAmple compatibility is essential; isolate it if retained.
+11. Implement Try a Word, trace, status, and parser-result lifecycle based on actual user priorities.
 
-**Exit gate:** agreed grammar workflows and at least one production parser path work on all platforms.
+**Exit gate:** agreed grammar workflows work on all platforms; the FST backend meets analysis-set, generation, performance, incremental-build, and diagnostic thresholds on representative projects; every remaining HermitCrab divergence is classified and user-visible.
 
 ### Phase 10 — Notebook (3–5 months)
 
@@ -642,6 +759,10 @@ Use public architecture decisions, a domain glossary, format specifications, and
 | Recreating LCModel behavior incompletely | Critical | Specify invariants, vertical slices, differential behavior tests, no schema-only shortcut |
 | Collaboration conflict loss | Critical | Append-only audit log, formal merge rules, convergence/fuzz tests, delayed rollout |
 | Publication output is “almost” correct | High | Renderer-neutral document model and real-dictionary regression corpus |
+| FST state explosion from feature combinations or rule composition | High | Backend-neutral IR, flag diacritics, factored networks, size budgets, staged compilation, semantic fallback |
+| FST replacement silently changes ambiguous analysis sets | Critical | Full-set differential tests against HermitCrab, identity-bearing outputs, generation round trips, staged activation |
+| Productive copying or nested constraints exceed ordinary FST expressivity | High | Bounded/lexical compilation where valid and an isolated, documented non-FST constraint layer |
+| Parser recompilation interrupts editing | High | Incremental component cache, cancellable worker, last-known-good grammar, background activation |
 | External integration churn | High | Versioned out-of-process adapters and explicit support policy |
 | Electron memory/security issues if TypeScript is chosen | High | Process isolation, strict IPC, virtualization, performance budgets, security review |
 | Avalonia platform text/accessibility gaps | High | Prototype gate and platform-specific adapters; do not commit before evidence |
@@ -658,7 +779,7 @@ Use public architecture decisions, a domain glossary, format specifications, and
 4. Is exact FLEx Bridge interoperability required, or is equivalent collaboration acceptable?
 5. Which integrations are contractual: Paratext, Webonary, Pathway, FLExTools, Dictionary App Builder, or others?
 6. Must existing dictionary configurations reproduce visual output exactly, or is semantic equivalence with migration assistance acceptable?
-7. Which parser engines are essential?
+7. What HermitCrab compatibility threshold is required, and which non-finite-state constructs occur in real target projects?
 8. What is the project’s license, governance model, and relationship to SIL/upstream maintainers?
 9. Can representative real-world projects be obtained under suitable test/data agreements?
 10. What team and multi-year maintenance budget is available?
@@ -671,7 +792,8 @@ Use public architecture decisions, a domain glossary, format specifications, and
 4. Specify the `.fwdata` subset and rich-string behavior needed for the first lexicon slice.
 5. Run the C#/Avalonia versus TypeScript/Electron spike.
 6. Build a read-only `.fwdata` inspector as the first end-to-end artifact.
-7. Re-estimate after the inspector reports actual unsupported classes, fields, writing systems, configurations, and media across the corpus.
+7. Build a bounded pyfoma parser spike from real FLEx data and compare its complete results with HermitCrab.
+8. Re-estimate after the inspector and parser spike report actual unsupported data and grammar constructs across the corpus.
 
 ## 14. Reference material
 
@@ -686,6 +808,11 @@ Primary sources used for this assessment:
 - [liblcm source repository](https://github.com/sillsdev/liblcm)
 - [LCModel master model](https://github.com/sillsdev/liblcm/blob/master/src/SIL.LCModel/MasterLCModel.xml)
 - [FLEx Bridge source repository](https://github.com/sillsdev/flexbridge)
+- [SIL Machine and current HermitCrab source](https://github.com/sillsdev/machine)
+- [FieldWorks HermitCrab loader](https://github.com/sillsdev/FieldWorks/blob/main/Src/LexText/ParserCore/HCLoader.cs)
+- [pyfoma source repository](https://github.com/mhulden/pyfoma)
+- [pyfoma documentation](https://mhulden.github.io/pyfoma/)
+- [PyFoma: a Python finite-state compiler module](https://aclanthology.org/2024.acl-demos.24/)
 
 Important upstream files inspected in the source snapshots include:
 
