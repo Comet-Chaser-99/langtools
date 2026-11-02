@@ -1,0 +1,70 @@
+[project]
+name = "elan-ng"
+version = "0.0.1"
+description = "A cross-platform reimplementation of the ELAN annotation tool (working name)."
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+# Runtime dependencies are added milestone by milestone (lxml in M1, numpy and av in M3);
+# exact versions are pinned in uv.lock.
+dependencies = [
+    "PySide6-Essentials>=6.8,<6.9",  # Qt 6.8 LTS supports macOS 12+; 6.12 wheels need macOS 14.4
+]
+
+[project.scripts]
+elan-ng = "elan_ng.app:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-qt>=4.4",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "import-linter>=2.1",
+    "pyinstaller>=6.10",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/elan_ng"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+packages = ["elan_ng"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+qt_api = "pyside6"
+
+[tool.importlinter]
+root_package = "elan_ng"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Layers: app -> ui -> (media | io) -> core"
+type = "layers"
+layers = [
+    "elan_ng.app",
+    "elan_ng.ui",
+    "elan_ng.media | elan_ng.io",
+    "elan_ng.core",
+]
+
+[[tool.importlinter.contracts]]
+name = "The core is UI-free and media-free"
+type = "forbidden"
+source_modules = ["elan_ng.core"]
+forbidden_modules = ["PySide6", "av", "elan_ng.ui", "elan_ng.media", "elan_ng.io"]
+allow_indirect_imports = false

@@ -792,7 +792,7 @@ Fallback: if Qt Multimedia's playback proves unreliable on one OS (see §8.2), t
 
 | Package | Use | License |
 |---|---|---|
-| PySide6 (Qt 6, latest LTS line) | UI, multimedia playback, audio output | LGPL-3.0 |
+| PySide6-Essentials 6.8.x (Qt 6.8 LTS) | UI, multimedia playback, audio output. Pinned to 6.8 because newer wheels (6.12) need macOS 14.4+, and we promise macOS 12+ (found in M0). | LGPL-3.0 |
 | lxml | EAF/pfsx/ecv parsing and writing, schema validation, keeping unknown XML | BSD |
 | numpy | Peaks, energy, FFT | BSD |
 | PyAV | Exact frame decoding, audio decoding for peaks (bundles FFmpeg) | BSD (PyAV); FFmpeg in wheels: LGPL [VERIFY build flags, §8.3] |
