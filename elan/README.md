@@ -4,7 +4,7 @@ A cross-platform reimplementation of [ELAN](https://archive.mpi.nl/tla/elan), th
 
 The design and specification are in [REIMPLEMENTATION.md](REIMPLEMENTATION.md).
 
-**Status: M0 (skeleton).** The app opens an empty main window with ELAN's full menu layout. Menu items that later milestones will implement are shown disabled, with the planned milestone in the tooltip.
+**Status: M1 (EAF core).** The app opens an empty main window with ELAN's full menu layout (menu items for later milestones are disabled). The `elan_ng.core` and `elan_ng.io` packages read and write `.eaf` 2.7–3.0 losslessly, and read `.pfsx` and `.ecv` files; there is no UI for them yet.
 
 ## Requirements
 
@@ -45,6 +45,12 @@ uv run elan-ng
 ```
 
 ## Development
+
+The round-trip tests also use real ELAN-saved files that are downloaded rather than committed (see `tests/corpus/LICENSES.md`). Fetch them once; tests that need them are skipped otherwise:
+
+```bash
+uv run python tests/corpus/fetch.py
+```
 
 ```bash
 uv run pytest

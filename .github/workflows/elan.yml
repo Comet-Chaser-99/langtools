@@ -49,6 +49,8 @@ jobs:
         run: uv run mypy
       - name: Import contracts
         run: uv run lint-imports
+      - name: Download external test corpus
+        run: uv run python tests/corpus/fetch.py
       - name: Tests
         run: uv run pytest -v
 
