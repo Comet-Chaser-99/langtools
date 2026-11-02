@@ -1003,11 +1003,11 @@ Phase column: **M3**, **M4**, **M5** = the milestone that delivers the item (all
 
 ```
 File
-  New…                                         M5
-  Open…                                        M5
-  Open Recent ▸                                M5
-  Close                                        M5
-  Save / Save As… / Save as Template…          M5 / M5 / v1
+  New…                                         M4
+  Open…                                        M4
+  Open Recent ▸                                M4
+  Close                                        M4
+  Save / Save As… / Save as Template…          M4 / M4 / v1
   Save Selection as EAF…                       P2
   Merge Transcriptions…                        P2
   Properties… (author, license, URN)           v1
@@ -1019,27 +1019,27 @@ File
                Praat TextGrid, Subtitles Text (SRT/WebVTT)                   v1
                CHAT, Toolbox, FLEx, HTML, SMIL, Image…                       P2 / –
   Page Setup / Print Preview / Print           –
-  Exit                                         M5
+  Exit                                         M4
 
 Edit
-  Undo / Redo                                  M5
-  Copy Annotation / Copy Annotation Group      M5 / v1
+  Undo / Redo                                  M4
+  Copy Annotation / Copy Annotation Group      M4 / v1
   Duplicate Annotation                         v1
   Paste Annotation / Group / Here / Group Here v1
   Copy Current Time                            v1
   Edit Linked Files…                           M4
-  Preferences ▸ Edit Preferences…              M5 (basic) / v1 (full)
+  Preferences ▸ Edit Preferences…              M4 (basic) / v1 (full)
                 Shortcuts…                     v1
                 Import / Export Preferences…   v1
 
 Annotation
-  New Annotation Here                          M5
-  New Annotation Before / After                M5
+  New Annotation Here                          M4
+  New Annotation Before / After                M4
   New Annotation from Begin–End Time…          v1
-  Modify Annotation                            M5
+  Modify Annotation                            M4
   Modify Annotation Time…                      v1
-  Remove Annotation Value                      M5
-  Delete Annotation                            M5
+  Remove Annotation Value                      M4
+  Delete Annotation                            M4
   Split / Merge with Next / Merge with Previous v1
   Shift Annotation(s) ▸                        v1
   Delete Annotations in Selection              v1
@@ -1047,25 +1047,25 @@ Annotation
   Label and Number Annotations…                P2
 
 Tier
-  Add New Tier…                                M5
-  Change Tier Attributes…                      M5
-  Delete Tier…                                 M5
+  Add New Tier…                                M4
+  Change Tier Attributes…                      M4
+  Delete Tier…                                 M4
   Add Participant / Import Tiers…              v1
   Change Parent of Tier…                       v1
   Copy Tier… / Merge Tiers… / Tokenize Tier…   v1
   Annotations from Overlaps…                   P2
 
 Type
-  Add New Tier Type…                           M5
-  Change Tier Type…                            M5
-  Delete Tier Type…                            M5
+  Add New Tier Type…                           M4
+  Change Tier Type…                            M4
+  Delete Tier Type…                            M4
   Import Tier Types…                           v1
-  Edit Controlled Vocabularies…                M5 (inline) / v1 (external)
+  Edit Controlled Vocabularies…                M4 (inline) / v1 (external)
   Edit Languages…                              v1
   Edit Lexicon Service Links…                  P2
 
 Search
-  Find…                                        M5 (substring) / v1 (regex)
+  Find…                                        M4 (substring) / v1 (regex)
   Find and Replace…                            v1
   Go To…                                       M4
   Search Multiple EAF… / Structured Search… / Find and Replace in Multiple Files  P2
@@ -1077,7 +1077,7 @@ View
   Font size ▸, Zoom ▸                          M4
 
 Options
-  Annotation Mode / Synchronization Mode / Transcription Mode / Segmentation Mode    M5 / v1 / v1 / v1
+  Annotation Mode / Synchronization Mode / Transcription Mode / Segmentation Mode    M4 / v1 / v1 / v1
   Interlinearization Mode                      P2
   Time Propagation Mode ▸ Normal / Bulldozer / Shift      M5 (Normal) / v1 (others)
   Selection Mode / Loop Mode                   M4
@@ -1086,12 +1086,12 @@ Options
   Language ▸ (UI language)                     P2
 
 Window
-  (list of open documents) / Previous / Next   M5
+  (list of open documents) / Previous / Next   M4
 
 Help
   Contents (opens our manual)                  v1
-  Shortcuts                                    M5
-  About / Check for Updates                    M5 / –
+  Shortcuts                                    M4
+  About / Check for Updates                    M4 / –
 ```
 
 ### 5.3 Dialogs (P0 ones)
