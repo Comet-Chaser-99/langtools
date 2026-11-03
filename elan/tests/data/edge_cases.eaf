@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A comment before the root element. -->
+<ANNOTATION_DOCUMENT AUTHOR="Tester" DATE="2026-01-05T10:00:00+01:00" FORMAT="3.0" VERSION="3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv3.0.xsd" FUTURE_ROOT_ATTR="kept">
+    <LICENSE LICENSE_URL="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</LICENSE>
+    <HEADER MEDIA_FILE="" TIME_UNITS="milliseconds">
+        <MEDIA_DESCRIPTOR MEDIA_URL="file:///data/video.mp4" MIME_TYPE="video/mp4" RELATIVE_MEDIA_URL="./video.mp4" TIME_ORIGIN="1200"/>
+        <MEDIA_DESCRIPTOR EXTRACTED_FROM="file:///data/video.mp4" MEDIA_URL="file:///data/video.wav" MIME_TYPE="audio/x-wav" RELATIVE_MEDIA_URL="./video.wav"/>
+        <LINKED_FILE_DESCRIPTOR ASSOCIATED_WITH="file:///data/video.mp4" LINK_URL="file:///data/track.csv" MIME_TYPE="text/plain" TIME_ORIGIN="-40"/>
+        <PROPERTY NAME="URN">urn:nl-mpi-tools-elan-eaf:00000000-0000-4000-8000-000000000001</PROPERTY>
+        <PROPERTY NAME="lastUsedAnnotationId">40</PROPERTY>
+        <PROPERTY NAME="custom">multi
+line &amp; "quoted"</PROPERTY>
+        <FUTURE_HEADER_ELEMENT VALUE="kept">with text</FUTURE_HEADER_ELEMENT>
+    </HEADER>
+    <TIME_ORDER>
+        <TIME_SLOT TIME_SLOT_ID="ts1" TIME_VALUE="0"/>
+        <TIME_SLOT TIME_SLOT_ID="ts2" TIME_VALUE="1000"/>
+        <TIME_SLOT TIME_SLOT_ID="ts3"/>
+        <TIME_SLOT TIME_SLOT_ID="ts4"/>
+        <TIME_SLOT TIME_SLOT_ID="ts5" TIME_VALUE="1500"/>
+        <TIME_SLOT TIME_SLOT_ID="ts6" TIME_VALUE="2500"/>
+        <TIME_SLOT TIME_SLOT_ID="ts7" TIME_VALUE="3000"/>
+        <TIME_SLOT TIME_SLOT_ID="ts8" TIME_VALUE="4000"/>
+        <TIME_SLOT TIME_SLOT_ID="ts9" TIME_VALUE="4300"/>
+        <TIME_SLOT TIME_SLOT_ID="ts10"/>
+        <TIME_SLOT TIME_SLOT_ID="ts11" TIME_VALUE="4900"/>
+        <TIME_SLOT TIME_SLOT_ID="ts12" TIME_VALUE="5000"/>
+    </TIME_ORDER>
+    <TIER ANNOTATOR="HF" DEFAULT_LOCALE="en" LANG_REF="eng" LINGUISTIC_TYPE_REF="utterance" PARTICIPANT="Speaker A" TIER_ID="utterance A">
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a1" TIME_SLOT_REF1="ts1" TIME_SLOT_REF2="ts7">
+                <ANNOTATION_VALUE>first line
+second line with ünïcödé, emoji 🎙️ and RTL שלום</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a2" EXT_REF="er1" LANG_REF="nld" TIME_SLOT_REF1="ts8" TIME_SLOT_REF2="ts12" FUTURE_ANNOTATION_ATTR="kept">
+                <ANNOTATION_VALUE></ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <!-- comment between annotations -->
+    </TIER>
+    <TIER LINGUISTIC_TYPE_REF="words" PARENT_REF="utterance A" PARTICIPANT="Speaker A" TIER_ID="words A">
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a3" TIME_SLOT_REF1="ts1" TIME_SLOT_REF2="ts2">
+                <ANNOTATION_VALUE>w1</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a4" TIME_SLOT_REF1="ts2" TIME_SLOT_REF2="ts3">
+                <ANNOTATION_VALUE>w2</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a5" TIME_SLOT_REF1="ts3" TIME_SLOT_REF2="ts4">
+                <ANNOTATION_VALUE>w3</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a6" TIME_SLOT_REF1="ts4" TIME_SLOT_REF2="ts7">
+                <ANNOTATION_VALUE>w4</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a7" TIME_SLOT_REF1="ts8" TIME_SLOT_REF2="ts12">
+                <ANNOTATION_VALUE>w5</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER LINGUISTIC_TYPE_REF="morphs" PARENT_REF="words A" TIER_ID="morphs A">
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a8" TIME_SLOT_REF1="ts8" TIME_SLOT_REF2="ts10">
+                <ANNOTATION_VALUE>m1</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a9" TIME_SLOT_REF1="ts10" TIME_SLOT_REF2="ts12">
+                <ANNOTATION_VALUE>m2</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER LINGUISTIC_TYPE_REF="gloss" PARENT_REF="words A" TIER_ID="gloss A">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a10" ANNOTATION_REF="a3" CVE_REF="cve-n">
+                <ANNOTATION_VALUE>N</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a11" ANNOTATION_REF="a4">
+                <ANNOTATION_VALUE>V</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER LINGUISTIC_TYPE_REF="segments" PARENT_REF="utterance A" TIER_ID="syllables A">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a12" ANNOTATION_REF="a2">
+                <ANNOTATION_VALUE>s1</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a13" ANNOTATION_REF="a2" PREVIOUS_ANNOTATION="a12">
+                <ANNOTATION_VALUE>s2</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a14" ANNOTATION_REF="a2" PREVIOUS_ANNOTATION="a13">
+                <ANNOTATION_VALUE>s3</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER LINGUISTIC_TYPE_REF="gesture-in" PARENT_REF="utterance A" TIER_ID="gesture A">
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a15" TIME_SLOT_REF1="ts5" TIME_SLOT_REF2="ts6">
+                <ANNOTATION_VALUE>point</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a16" TIME_SLOT_REF1="ts9" TIME_SLOT_REF2="ts11">
+                <ANNOTATION_VALUE>beat</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER LINGUISTIC_TYPE_REF="utterance" TIER_ID="empty tier"/>
+    <LINGUISTIC_TYPE GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="utterance" TIME_ALIGNABLE="true"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Time_Subdivision" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="words" TIME_ALIGNABLE="true"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Time_Subdivision" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="morphs" TIME_ALIGNABLE="true"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Symbolic_Association" CONTROLLED_VOCABULARY_REF="pos" EXT_REF="er1" GRAPHIC_REFERENCES="false" LEXICON_REF="lex1" LINGUISTIC_TYPE_ID="gloss" TIME_ALIGNABLE="false"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Symbolic_Subdivision" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="segments" TIME_ALIGNABLE="false"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Included_In" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="gesture-in" TIME_ALIGNABLE="true"/>
+    <LOCALE COUNTRY_CODE="US" LANGUAGE_CODE="en"/>
+    <LANGUAGE LANG_DEF="http://cdb.iso.org/lg/CDB-00138502-001" LANG_ID="eng" LANG_LABEL="English (eng)"/>
+    <LANGUAGE LANG_DEF="http://cdb.iso.org/lg/CDB-00138580-001" LANG_ID="nld" LANG_LABEL="Dutch (nld)"/>
+    <CONSTRAINT DESCRIPTION="Time subdivision of parent annotation's time interval, no time gaps allowed within this interval" STEREOTYPE="Time_Subdivision"/>
+    <CONSTRAINT DESCRIPTION="Symbolic subdivision of a parent annotation. Annotations refering to the same parent are ordered" STEREOTYPE="Symbolic_Subdivision"/>
+    <CONSTRAINT DESCRIPTION="1-1 association with a parent annotation" STEREOTYPE="Symbolic_Association"/>
+    <CONSTRAINT DESCRIPTION="Time alignable annotations within the parent annotation's time interval, gaps are allowed" STEREOTYPE="Included_In"/>
+    <CONTROLLED_VOCABULARY CV_ID="pos">
+        <DESCRIPTION LANG_REF="eng">Parts of speech</DESCRIPTION>
+        <DESCRIPTION LANG_REF="nld"/>
+        <CV_ENTRY_ML CVE_ID="cve-n" EXT_REF="er1">
+            <CVE_VALUE DESCRIPTION="noun" LANG_REF="eng">N</CVE_VALUE>
+            <CVE_VALUE DESCRIPTION="zelfstandig naamwoord" LANG_REF="nld">ZN</CVE_VALUE>
+        </CV_ENTRY_ML>
+        <CV_ENTRY_ML CVE_ID="cve-v">
+            <CVE_VALUE LANG_REF="eng">V</CVE_VALUE>
+            <CVE_VALUE LANG_REF="nld">WW</CVE_VALUE>
+        </CV_ENTRY_ML>
+    </CONTROLLED_VOCABULARY>
+    <CONTROLLED_VOCABULARY CV_ID="external" EXT_REF="er2"/>
+    <LEXICON_REF DATCAT_ID="dc1" DATCAT_NAME="gloss" LEXICON_ID="lexicon-1" LEXICON_NAME="Demo lexicon" LEX_REF_ID="lex1" NAME="demo" TYPE="Toolbox" URL="file:///data/demo.lex"/>
+    <REF_LINK_SET LINK_SET_ID="set1" LINK_SET_NAME="coreference">
+        <CROSS_REF_LINK DIRECTIONALITY="unidirectional" REF1="a1" REF2="a2" REF_LINK_ID="rl1" REF_TYPE="coref">same referent</CROSS_REF_LINK>
+        <GROUP_REF_LINK REFS="a3 a4 rl1" REF_LINK_ID="rl2"/>
+    </REF_LINK_SET>
+    <EXTERNAL_REF EXT_REF_ID="er1" TYPE="iso12620" VALUE="http://www.isocat.org/datcat/DC-1333"/>
+    <EXTERNAL_REF EXT_REF_ID="er2" TYPE="ecv" VALUE="file:///data/external.ecv"/>
+    <FUTURE_TOP_LEVEL_ELEMENT>kept at the end</FUTURE_TOP_LEVEL_ELEMENT>
+</ANNOTATION_DOCUMENT>

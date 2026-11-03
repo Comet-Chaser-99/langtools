@@ -7,6 +7,7 @@ requires-python = ">=3.12,<3.14"
 # Runtime dependencies are added milestone by milestone (lxml in M1, numpy and av in M3);
 # exact versions are pinned in uv.lock.
 dependencies = [
+    "lxml>=5.3,<7",
     "PySide6-Essentials>=6.8,<6.9",  # Qt 6.8 LTS supports macOS 12+; 6.12 wheels need macOS 14.4
 ]
 
@@ -21,6 +22,7 @@ dev = [
     "mypy>=1.11",
     "import-linter>=2.1",
     "pyinstaller>=6.10",
+    "lxml-stubs>=0.5",
 ]
 
 [build-system]
@@ -68,3 +70,7 @@ type = "forbidden"
 source_modules = ["elan_ng.core"]
 forbidden_modules = ["PySide6", "av", "elan_ng.ui", "elan_ng.media", "elan_ng.io"]
 allow_indirect_imports = false
+
+[tool.ruff.lint.isort]
+known-first-party = ["elan_ng"]
+known-local-folder = ["support", "eafcompare"]

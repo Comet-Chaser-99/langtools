@@ -98,7 +98,7 @@ Priorities: **P0** = MVP (milestones M0–M5), **P1** = next (M6–M8), **P2** =
 - A **time slot** is a point on the time axis. `TIME_SLOT_ID` plus an optional `TIME_VALUE` in ms (unsigned int) [XSD].
 - **Aligned** slot: has a `TIME_VALUE`. **Unaligned** slot: no value. Its time is undetermined but its *order* relative to other slots is defined by the order of `TIME_SLOT` elements in `TIME_ORDER`.
 - Unaligned slots only occur inside Time Subdivision chains (and very rarely in imported files). Root-tier and Included In annotations always have aligned begin and end slots.
-- **Display time of an unaligned slot:** the viewers place unaligned boundaries by interpolating evenly between the nearest aligned boundaries in the same subdivision chain. Example: parent 1000–4000 with three children whose two inner slots are unaligned are shown at 2000 and 3000. [VERIFY that ELAN interpolates evenly per chain, and not by character count.]
+- **Display time of an unaligned slot:** the viewers place unaligned boundaries by interpolating evenly between the nearest aligned boundaries in the same subdivision chain. Example: parent 1000–4000 with three children whose two inner slots are unaligned are shown at 2000 and 3000. [VERIFY that ELAN interpolates evenly per chain, and not by character count.] Interpolating along the global `TIME_ORDER` instead would be wrong: in ELAN-saved files, unaligned slots sit right after the chain's first slot, often between two aligned slots with the *same* value (seen in the M1 corpus).
 - **Sharing:** a slot can be referenced by more than one annotation. This is how ELAN expresses "same point in time" structurally:
   - The first child of a Time Subdivision parent uses the parent's begin slot. The last child uses the parent's end slot. Adjacent siblings share one slot (end of one = begin of the next).
   - Moving a shared slot moves every annotation that uses it. This is what makes subdivision children follow their parent automatically.
@@ -603,7 +603,7 @@ Version differences:
 These rules aim at output that ELAN would produce, so a load–save cycle in elan-ng and one in ELAN give nearly identical files.
 
 - **Annotation IDs:** keep existing IDs. New IDs are `a<n>` with `n = lastUsedAnnotationId + 1`, incremented per new annotation; `lastUsedAnnotationId` (header property) is updated on save. If the property is missing, compute it as the highest numeric suffix among `a<n>` IDs. Never reuse an ID within a session (undo of a deletion restores the original ID). If a loaded ID collides with another `xsd:ID` (e.g. a `LANG_ID` named `a5`), new IDs skip it.
-- **Time slot IDs:** regenerated on every save as `ts1 … tsN` in time-order, as ELAN does [VERIFY that ELAN renumbers; if not, keep and append].
+- **Time slot IDs:** regenerated on every save as `ts1 … tsN` in time-order. ELAN-saved files always number their slots consecutively in TIME_ORDER (checked on the M1 corpus), and our writer reproduces an ELAN 3.0 file byte for byte this way.
 - **Time order (`TIME_ORDER`):** slots are written in a total order consistent with:
   1. aligned values ascending;
   2. for unaligned slots, their position in the subdivision chain between the neighboring aligned slots;
@@ -613,7 +613,7 @@ These rules aim at output that ELAN would produce, so a load–save cycle in ela
 - **Tiers:** written in document order (creation order; new tiers appended). Annotations in a tier written in time order (by begin slot order; for reference annotations: parent order, then chain order).
 - **Linguistic types, CVs, languages:** document order, new ones appended.
 - **Constraints:** ELAN always writes the four `CONSTRAINT` elements with the exact descriptions in §2.1.4. Do the same.
-- **Formatting:** 4-space indentation, one element per line, attributes in ELAN's order (as listed in §3.1.2 — to be checked against real ELAN output [VERIFY]), double quotes, `&amp; &lt; &gt; &quot;` escaped in attributes; newlines in `ANNOTATION_VALUE` written as is. Formatting differences are not "loss", but matching ELAN keeps diffs small for users who track EAF in git.
+- **Formatting:** 4-space indentation, one element per line, attributes in **alphabetical order** with `xmlns:xsi` and `xsi:*` after the plain attributes (this is what ELAN writes; confirmed on ELAN-saved files in M1), double quotes, `&amp; &lt; &gt; &quot;` escaped in attributes; newlines in `ANNOTATION_VALUE` written as is. An empty `ANNOTATION_VALUE` is written as `<ANNOTATION_VALUE></ANNOTATION_VALUE>`; other empty elements (e.g. a CV `DESCRIPTION`) self-close. Formatting differences are not "loss", but matching ELAN keeps diffs small for users who track EAF in git.
 - **DATE:** current time in ISO 8601 with offset, e.g. `2026-11-02T13:45:12-05:00`.
 
 #### 3.1.4 Minimal annotated example
@@ -1214,10 +1214,10 @@ The manual documents ELAN 6.3. Each item below is tagged [VERIFY] in the text ab
 5. **Merge/split rules (S1, S2):** value joining, children handling.
 6. **Shortcut discrepancies in the manual:** "New annotation here" is Alt+N in [M 2.9] but Ctrl+Alt+N in [M 6.2.3]; "New annotation before" and "after" are both listed as Ctrl+Shift+N; "Show empty slots" is listed as Ctrl+Alt+Shift with no key; macOS mappings; the drag modifier for retiming. We follow the program.
 7. **Transcription mode keys and options** (not on the manual pages I could reach).
-8. **ID behavior on save:** does ELAN renumber time slots (we assume yes) and keep annotation IDs (we assume yes)?
-9. **Attribute order and formatting** of ELAN's EAF writer, for minimal diffs.
+8. **ID behavior on save:** ELAN-saved files have consecutive slot ids in time order (consistent with renumbering, M1). Still to check in ELAN 7.1 that annotation ids are kept across saves.
+9. ~~**Attribute order and formatting** of ELAN's EAF writer.~~ Resolved in M1: alphabetical, see §3.1.3.
 10. **`.pfsx` key list and schema version**, and where ELAN 7.1 stores global preferences on each OS.
-11. **External CV caching** inside the EAF, and how 2.7 monolingual CVs are converted (language ID used).
+11. **External CV caching** inside the EAF, and how 2.7 monolingual CVs are converted. Partly resolved in M1: the ELAN-saved sample files keep **no** cached entries for external CVs (just `CV_ID` and `EXT_REF`), and ELAN's 3.0 files use `LANGUAGE LANG_ID="und"` with `LANG_DEF="http://cdb.iso.org/lg/CDB-00130975-001"` and label `undetermined (und)`, which our 2.7 conversion now uses. Still to check: the `CVE_ID` format ELAN generates for converted entries (we use `cveid_<uuid>`).
 12. **Zoom level list**, ms-per-pixel at 100%, auto-scroll behavior during playback, selection mode semantics.
 13. **Zero-length annotations:** forbidden on creation, but can they occur in files ELAN writes (e.g. after imports)?
 14. **Master media choice** and maximum number of videos in 7.1.
