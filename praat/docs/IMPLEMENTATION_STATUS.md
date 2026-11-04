@@ -2,7 +2,7 @@
 
 Owner of this initial implementation: @jaas29. Tracking: [issue #9](https://github.com/mhulden/langtools/issues/9). Branch: `praat/initial-workflow`.
 
-Implementation: [draft PR #10](https://github.com/mhulden/langtools/pull/10). Check it before starting overlapping work; the files below are implemented on that branch, not yet merged into upstream main.
+Implementation: [PR #10](https://github.com/mhulden/langtools/pull/10), ready for review. Check it before starting overlapping work; the files below are implemented on that branch, not yet merged into upstream main.
 
 | Area | Implemented | Main paths |
 |---|---|---|
@@ -16,6 +16,8 @@ Implementation: [draft PR #10](https://github.com/mhulden/langtools/pull/10). Ch
 Read [INTERFACES.md](INTERFACES.md) before building against these modules and [COMPATIBILITY.md](COMPATIBILITY.md) before describing feature support. Run instructions are in [README.md](../README.md).
 
 The canonical requirements remain in `../REIMPLEMENTATION.md`. This file tracks implementation, not a replacement specification. R1 is not complete; no oracle parity is claimed.
+
+Validation on 2026-11-04: 56 local tests passed, lint/format passed, and a built wheel ran headlessly in a fresh environment. [Hosted CI passed](https://github.com/mhulden/langtools/actions/runs/41934814868) on macOS/Windows/Linux with Python 3.12 and Linux with Python 3.13.
 
 ## Follow-up work available
 

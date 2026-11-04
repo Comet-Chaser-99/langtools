@@ -53,11 +53,13 @@ public TextGrid format documentation. No original Praat implementation code or
 external speech corpus is included. The demo generator creates an original tone;
 its IPA labels are text-rendering examples, not phonetic analysis of that tone.
 
-Local checks: pytest behavioral/Qt suite, Ruff lint/format, and offscreen desktop
-render inspection on macOS/arm64 with Python 3.12. CI repeats the suite on Linux,
-Windows and macOS and Python 3.13/Linux. Published CI results determine which of
-those environments have actually passed; a configured matrix is not evidence of
-a successful run. Qt tests need unsandboxed CPU-feature detection on this host.
+Local checks: 56 pytest behavioral/Qt tests passed, Ruff lint/format passed, and
+offscreen desktop render inspected on macOS/arm64 with Python 3.12. Wheel and
+source distribution built; a fresh headless wheel install worked without Qt.
+[Hosted CI run](https://github.com/mhulden/langtools/actions/runs/41934814868)
+passed on Linux, Windows and macOS/Python 3.12 and Linux/Python 3.13. These are
+offscreen checks, not manual device or full UI parity verification. Qt tests need
+unsandboxed CPU-feature detection on this local host.
 
 Before claiming interoperability, open exported fixture TextGrids in the chosen
 Praat release and record the executable hash, settings, expected geometry/text,
