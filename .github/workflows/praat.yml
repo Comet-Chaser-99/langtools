@@ -1,0 +1,50 @@
+name: praat
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ["praat/**", ".github/workflows/praat.yml"]
+  pull_request:
+    paths: ["praat/**", ".github/workflows/praat.yml"]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: praat
+
+env:
+  QT_QPA_PLATFORM: offscreen
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.12"]
+        include:
+          - os: ubuntu-latest
+            python: "3.13"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.13.7"
+      - name: Install Qt system libraries
+        if: runner.os == 'Linux'
+        working-directory: .
+        run: >
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends
+          libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 libfontconfig1 libdbus-1-3
+      - name: Install locked dependencies
+        run: uv sync --locked --extra gui --python ${{ matrix.python }}
+      - name: Lint
+        run: uv run ruff check .
+      - name: Formatting
+        run: uv run ruff format --check .
+      - name: Behavioral and desktop tests
+        run: uv run pytest -v
