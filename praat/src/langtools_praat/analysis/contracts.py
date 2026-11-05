@@ -130,6 +130,22 @@ class TimeRange:
             raise InvalidInput("Analysis range needs finite bounds.")
         if self.start >= self.end:
             raise InvalidInput("Analysis range needs start < end.")
+        # Canonical floats (and +0.0 for -0.0) so equal ranges share one cache key.
+        object.__setattr__(self, "start", float(self.start) + 0.0)
+        object.__setattr__(self, "end", float(self.end) + 0.0)
+
+    def contains_frames(self, axis: SampledAxis) -> bool:
+        """True if every frame centre of ``axis`` lies in [start, end).
+
+        Boundary policy matches ``SampledAxis.frame_range``: a centre within 1e-9
+        frame steps of a bound counts as on it, so it is in at ``start`` and out at
+        ``end``. The axis's declared domain may extend beyond the range (e.g.
+        analysis-window padding); only returned frame centres are constrained.
+        """
+        tolerance = 1e-9 * axis.dx
+        first = axis.x1
+        last = axis.x1 + (axis.nx - 1) * axis.dx
+        return first >= self.start - tolerance and last < self.end - tolerance
 
 
 class ChannelMode(StrEnum):
@@ -350,9 +366,14 @@ class Provenance:
         return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _check_kind(provenance: Provenance, kind: AnalysisKind) -> None:
+def _check_provenance(provenance: Provenance, kind: AnalysisKind, time: SampledAxis) -> None:
+    """Shared by all result types: right kind, and frames inside the requested range."""
     if not isinstance(provenance, Provenance) or provenance.request.kind is not kind:
         raise InvalidInput(f"Result provenance does not describe a {kind.value} analysis.")
+    if not isinstance(time, SampledAxis):
+        raise InvalidInput("A result's time axis must be a SampledAxis.")
+    if not provenance.request.time_range.contains_frames(time):
+        raise InvalidInput("Result frame times lie outside the requested time range.")
 
 
 # ---------------------------------------------------------------------------
@@ -374,7 +395,7 @@ class Spectrogram:
     units: ClassVar[dict[str, str]] = {"time": SECONDS, "frequency": HZ, "power": PA2_PER_HZ}
 
     def __post_init__(self) -> None:
-        _check_kind(self.provenance, AnalysisKind.SPECTROGRAM)
+        _check_provenance(self.provenance, AnalysisKind.SPECTROGRAM, self.time)
         expected = (self.time.nx, self.frequency.nx)
         power, valid = np.asarray(self.power, dtype=np.float64), np.asarray(self.valid, dtype=bool)
         _shape("power", power, expected)
@@ -416,7 +437,7 @@ class Pitch:
     }
 
     def __post_init__(self) -> None:
-        _check_kind(self.provenance, AnalysisKind.PITCH)
+        _check_provenance(self.provenance, AnalysisKind.PITCH, self.time)
         _positive("ceiling", self.ceiling)
         nx = self.time.nx
         frequency = np.asarray(self.candidate_frequency, dtype=np.float64)
@@ -492,7 +513,7 @@ class Formant:
     }
 
     def __post_init__(self) -> None:
-        _check_kind(self.provenance, AnalysisKind.FORMANT)
+        _check_provenance(self.provenance, AnalysisKind.FORMANT, self.time)
         nx = self.time.nx
         frequency = np.asarray(self.frequency, dtype=np.float64)
         bandwidth = np.asarray(self.bandwidth, dtype=np.float64)
@@ -539,7 +560,7 @@ class Intensity:
     units: ClassVar[dict[str, str]] = {"time": SECONDS, "values": DB_SPL}
 
     def __post_init__(self) -> None:
-        _check_kind(self.provenance, AnalysisKind.INTENSITY)
+        _check_provenance(self.provenance, AnalysisKind.INTENSITY, self.time)
         values = np.asarray(self.values, dtype=np.float64)
         _shape("values", values, (self.time.nx,))
         if np.isinf(values).any():

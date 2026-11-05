@@ -66,7 +66,10 @@ R1 analyses (issue #12). It contains no algorithms. Each analysis is a pure
 function from a Sound/frames and an `AnalysisRequest` to one result type.
 
 - **Request:** `AnalysisRequest(source_id, revision, settings, time_range,
-  channels, token)`. `TimeRange` is half-open `[start, end)` in source seconds.
+  channels, token)`. `TimeRange` is half-open `[start, end)` in source seconds,
+  stored as canonical floats. Every result's frame centres must lie in that range
+  (within 1e-9 frame steps, matching `frame_range`), so a result in local or wrong
+  coordinates is rejected at construction. Its declared domain may be wider.
   `ChannelPolicy.single(i)` is zero-based. `ChannelPolicy.combined()` means the
   method's documented multichannel rule; a method without one rejects it. There is
   no implicit downmix.

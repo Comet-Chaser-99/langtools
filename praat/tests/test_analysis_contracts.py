@@ -78,7 +78,7 @@ def _pitch_kwargs():
     # Frame 2: chosen 5000 Hz sits exactly at the ceiling, so it reads as unvoiced.
     # Frame 3: three candidates, chosen slot 2 = 220 Hz.
     return {
-        "provenance": _provenance(PitchSettings()),
+        "provenance": _provenance(PitchSettings(), time_range=TimeRange(0.0, 1.0)),
         "time": PITCH_TIME,
         "ceiling": 5000.0,
         "intensity": np.array([0.2, 0.5, 1.0, 0.8]),
@@ -842,3 +842,97 @@ def test_accept_true_for_matching_identity():
 def test_accept_false_when_any_identity_field_differs(source_id, revision, token):
     result = _intensity(provenance=_provenance(IntensitySettings(), token=3))
     assert not accept(result, source_id, revision, token)
+
+
+# ---------------------------------------------------------------------------
+# Review #14: result frames must lie in the requested range; canonical bounds
+
+
+def _outside_axis():
+    return SampledAxis(10.0, 11.0, 1, 0.1, 10.5)
+
+
+def test_misaligned_intensity_is_rejected_codex_reproduction():
+    request = AnalysisRequest(
+        "rec", 1, IntensitySettings(), TimeRange(0.0, 1.0), ChannelPolicy.single(0), token=3
+    )
+    with pytest.raises(InvalidInput):
+        Intensity(Provenance(request, ALGO), _outside_axis(), np.array([60.0]))
+
+
+def test_misaligned_spectrogram_is_rejected():
+    with pytest.raises(InvalidInput):
+        Spectrogram(
+            _provenance(SpectrogramSettings()),
+            _outside_axis(),
+            SPEC_FREQ,
+            np.ones((1, 3)),
+            np.ones((1, 3), dtype=bool),
+        )
+
+
+def test_misaligned_pitch_is_rejected():
+    with pytest.raises(InvalidInput):
+        Pitch(
+            _provenance(PitchSettings()),
+            _outside_axis(),
+            500.0,
+            np.array([0.5]),
+            np.array([[200.0]]),
+            np.array([[0.9]]),
+            np.array([1]),
+            np.array([0]),
+        )
+
+
+def test_misaligned_formant_is_rejected():
+    with pytest.raises(InvalidInput):
+        Formant(
+            _provenance(FormantSettings()),
+            _outside_axis(),
+            np.array([1.0]),
+            np.array([1]),
+            np.array([[500.0]]),
+            np.array([[80.0]]),
+        )
+
+
+def _intensity_on(axis, start=0.0, end=0.3):
+    provenance = _provenance(IntensitySettings(), time_range=TimeRange(start, end))
+    return Intensity(provenance, axis, np.full(axis.nx, 60.0))
+
+
+def test_frame_at_range_start_is_inside():
+    _intensity_on(SampledAxis(0.0, 0.3, 3, 0.1, 0.0))
+
+
+def test_frame_at_range_end_is_outside_half_open():
+    with pytest.raises(InvalidInput):
+        _intensity_on(SampledAxis(0.0, 0.3, 4, 0.1, 0.0))  # last centre 0.3 == end
+
+
+def test_frame_within_tolerance_of_start_counts_as_on_it():
+    _intensity_on(SampledAxis(-1.0, 0.3, 3, 0.1, -1e-12))
+
+
+def test_frame_just_before_start_is_rejected():
+    with pytest.raises(InvalidInput):
+        _intensity_on(SampledAxis(-1.0, 0.3, 3, 0.1, -1e-6))
+
+
+def test_axis_domain_may_extend_beyond_range():
+    # Window padding: declared domain wider than the range, frame centres inside it.
+    _intensity_on(SampledAxis(-0.5, 0.8, 3, 0.1, 0.05))
+
+
+def test_equivalent_bounds_share_cache_key():
+    a = _provenance(time_range=TimeRange(0, 1)).cache_key
+    b = _provenance(time_range=TimeRange(0.0, 1.0)).cache_key
+    c = _provenance(time_range=TimeRange(-0.0, 1.0)).cache_key
+    assert a == b == c
+
+
+def test_time_range_bounds_are_canonical_floats():
+    r = TimeRange(-0.0, 1)
+    assert type(r.start) is float and type(r.end) is float
+    assert math.copysign(1.0, r.start) == 1.0
