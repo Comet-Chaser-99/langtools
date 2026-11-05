@@ -114,7 +114,6 @@ def _normalise_floats(settings: object) -> None:
             object.__setattr__(settings, field.name, float(value))
 
 
-
 # ---------------------------------------------------------------------------
 # Requests
 
