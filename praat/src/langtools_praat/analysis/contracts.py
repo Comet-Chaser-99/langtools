@@ -316,6 +316,10 @@ class AnalysisRequest:
             raise InvalidInput("Source revision must be a non-negative integer.")
         if not isinstance(self.settings, Settings):
             raise InvalidInput("Unknown analysis settings type.")
+        if not isinstance(self.time_range, TimeRange):
+            raise InvalidInput("An analysis request needs a TimeRange.")
+        if not isinstance(self.channels, ChannelPolicy):
+            raise InvalidInput("An analysis request needs a ChannelPolicy.")
         if type(self.token) is not int:
             raise InvalidInput("Request token must be an integer.")
 

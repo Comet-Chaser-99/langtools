@@ -936,3 +936,18 @@ def test_time_range_bounds_are_canonical_floats():
     r = TimeRange(-0.0, 1)
     assert type(r.start) is float and type(r.end) is float
     assert math.copysign(1.0, r.start) == 1.0
+
+
+# Review #14 (second pass): malformed request fields fail at construction
+
+
+@pytest.mark.parametrize("time_range", [[0, 1], (0.0, 1.0), None, {"start": 0, "end": 1}])
+def test_request_rejects_non_time_range(time_range):
+    with pytest.raises(InvalidInput):
+        AnalysisRequest("source", 0, PitchSettings(), time_range, ChannelPolicy.single(0))
+
+
+@pytest.mark.parametrize("channels", [{"channel": 0}, None, 0, "combined"])
+def test_request_rejects_non_channel_policy(channels):
+    with pytest.raises(InvalidInput):
+        AnalysisRequest("source", 0, PitchSettings(), TimeRange(0.0, 1.0), channels)

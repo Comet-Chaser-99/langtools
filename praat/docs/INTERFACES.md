@@ -93,9 +93,11 @@ function from a Sound/frames and an `AnalysisRequest` to one result type.
 | `Formant` | `time` | `frequency/bandwidth (frames, slots)` sorted, `count`, `intensity` | Hz, Pa² | slots ≥ `count` are NaN |
 | `Intensity` | `time` | `values (frames,)` | dB re 2e-5 Pa | NaN, `valid` derived |
 
-Stored values are always physical. dB conversion, pre-emphasis, autoscaling,
-dynamic range and grey mapping are separate pure display/query functions, so GUI
-and CLI read identical numbers. Arrays are read-only, like `Sound.samples`.
+Stored values are always physical. For the spectrogram, dB conversion, display
+pre-emphasis, autoscaling, dynamic range and grey mapping are separate pure
+display/query functions, so GUI and CLI read identical numbers. This does not apply
+to analysis preprocessing: Burg formants must still pre-emphasise the signal
+numerically from `FormantSettings.preemphasis_from` before LPC. Arrays are read-only, like `Sound.samples`.
 
 ## UI and future analysis
 
