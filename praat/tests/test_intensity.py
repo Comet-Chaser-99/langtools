@@ -120,6 +120,41 @@ def test_shortest_accepted_sound_gives_one_frame():
     assert _intensity(sound).time.nx == 1
 
 
+# Reference arithmetic order (pinned Praat 56ed24ef, fon/Sound_to_Intensity.cpp L54-L65 and
+# fon/Sampled.cpp L74-L77): logical = 3.2 * (1 / pf), step = logical / 4, physical = 2 * logical.
+# At these settings 6.4 / pf and 0.8 / pf differ from that in the last bit, which changes the
+# discrete results below (PR #29 review).
+
+
+def test_sound_of_exactly_6_4_over_pitch_floor_is_rejected_in_reference_order():
+    # 0.16 s, equal to 6.4 / 40 in exact arithmetic
+    sound = _sound(_sine(440.0, n=1280, rate=8000), rate=8000)
+    with pytest.raises(InvalidInput):
+        _intensity(sound, settings=IntensitySettings(pitch_floor=40.0))
+
+
+def test_frame_count_uses_reference_order_window_and_step():
+    sound = _sound(_sine(440.0, n=1600, rate=8000), rate=8000)  # 0.2 s
+    result = _intensity(sound, settings=IntensitySettings(pitch_floor=40.0))
+    assert result.time.nx == 2  # 6.4/pf and 0.8/pf would give 3
+
+
+def test_half_window_samples_use_reference_order(monkeypatch):
+    from langtools_praat.analysis import intensity as module
+
+    seen = []
+    original = module.kaiser_window
+
+    def spy(half_samples, dx, half_duration):
+        seen.append(half_samples)
+        return original(half_samples, dx, half_duration)
+
+    monkeypatch.setattr(module, "kaiser_window", spy)
+    sound = _sound(_sine(440.0, n=11025, rate=11025), rate=11025)
+    _intensity(sound, settings=IntensitySettings(pitch_floor=49.0))
+    assert seen == [719]  # 6.4/pf would give 720
+
+
 def test_rejects_wrong_request_kind_and_stale_revision():
     sound = _sound(_sine(440.0))
     with pytest.raises(InvalidInput):
