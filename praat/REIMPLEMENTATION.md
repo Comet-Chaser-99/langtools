@@ -525,18 +525,18 @@ An Intensity object is a Matrix with one row and linearly spaced frames `t_i = t
 
 Form defaults (`fon/praat_Sound.cpp`, `CONVERT_EACH_TO_ONE__Sound_to_Intensity`): Pitch floor = 100 Hz, Time step = 0 (auto), Subtract mean = true. The old form (`CONVERT_EACH_TO_ONE__old_Sound_to_Intensity`) passes `subtractMean = false`.
 
-Parameters in `Sound_to_Intensity_` (source comment and manual agree):
+Parameters in `Sound_to_Intensity_` (`fon/Sound_to_Intensity.cpp` L54-L65). The source computes them in this order, and the order is normative: `3.2 / pitchFloor`, `6.4 / pitchFloor` and `0.8 / pitchFloor` are the source comments, and for some pitch floors (e.g. 40 Hz, 49 Hz) they differ from the computed values in the last bit, which changes the accept/reject decision, frame counts and `halfWindowSamples`:
 
-- `logicalWindowDuration = 3.2 / pitchFloor`. This is the "effective" window length the manual refers to.
-- `physicalWindowDuration = 6.4 / pitchFloor`; the window is spanned by `halfWindowSamples = floor((physicalWindowDuration/2) / dx)` on each side of the frame centre.
-- Default time step (timeStep = 0) is `logicalWindowDuration / 4 = 0.8 / pitchFloor`.
+- `periodCeiling = 1.0 / pitchFloor`; `logicalWindowDuration = 3.2 * periodCeiling` (about `3.2 / pitchFloor`). This is the "effective" window length the manual refers to.
+- `physicalWindowDuration = 2.0 * logicalWindowDuration` (about `6.4 / pitchFloor`); `halfWindowDuration = 0.5 * physicalWindowDuration`, and the window is spanned by `halfWindowSamples = floor(halfWindowDuration / dx)` on each side of the frame centre.
+- Default time step (timeStep = 0) is `logicalWindowDuration / 4.0` (about `0.8 / pitchFloor`).
 - Window shape: `x = (i - centre) dx / halfWindowDuration`, `w = I0((2 pi^2 + 0.5) * sqrt(1 - x^2))`, i.e. a Kaiser window with beta ~ 20.2. The manual calls this "Kaiser-20" (`Sound__To_Intensity___.html`) and, in Intro 6.2, "Gaussian ('double Kaiser')". Treat the source formula as a candidate reference kernel and verify it with the pinned runtime.
 - Sound is squared, then averaged with the window. With `subtractMeanPressure`, the mean of each windowed segment is removed (`centre_VEC_inout`) before squaring. This is a local mean over the window, not a global DC removal.
 - For each frame, `P = sum_channels sum_samples(x^2 w) / sum_channels sum_samples(w)`, and the value is `10 log10(P / (2e-5)^2)`.
 - The frame centre is the nearest sample to the frame time (time accuracy half a sample). Stereo input is handled by pooling channel energies.
 - `veryAccurate` is `false` in code; if enabled, the Sound is upsampled first to avoid super-Nyquist content from squaring.
 
-Minimum length: the physical duration must be at least `6.4 / pitchFloor` (about 64 ms at 100 Hz); otherwise an error is thrown.
+Minimum length: `physicalWindowDuration` as computed above (about `6.4 / pitchFloor`, 64 ms at 100 Hz) must not exceed `nx * dx`; otherwise an error is thrown (`fon/Sampled.cpp` L74-L77, `Sampled_shortTermAnalysis`).
 
 Unverified: the manual describes the intensity as ripple-free to 0.00001 dB for a periodic signal; I have not checked this numerically.
 
